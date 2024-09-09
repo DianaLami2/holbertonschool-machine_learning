@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 """
-Displays the upcoming launch information
+Module is a script that fetches next launch
+data from the spacex api.
 """
+
+
 import requests
 
-if __name__ == '__main__':
-    url = "https://api.spacexdata.com/v4/launches/upcoming"
-    r = requests.get(url)
-    json = r.json()
 
-    dates = [x['date_unix'] for x in json]
-    index = dates.index(min(dates))
-    next_launch = json[index]
+if __name__ == "__main__":
 
-    name = next_launch['name']
-    date = next_launch['date_local']
-    rocket_id = next_launch['rocket']
-    launchpad_id = next_launch['launchpad']
+    base = "https://api.spacexdata.com/v4/"
 
-    url_r = "https://api.spacexdata.com/v4/rockets/" + rocket_id
-    req_r = requests.get(url_r)
-    json_r = req_r.json()
-    rocket_name = json_r['name']
+    info = requests.get(base+"launches/next").json()
 
-    url_l = "https://api.spacexdata.com/v4/launchpads/" + launchpad_id
-    req_l = requests.get(url_l)
-    json_l = req_l.json()
-    launchpad_name = json_l['name']
-    launchpad_loc = json_l['locality']
+    date = info["date_local"]
 
-    info = (name + ' (' + date + ') ' + rocket_name + ' - ' +
-            launchpad_name + ' (' + launchpad_loc + ')')
-    print(info)
+    name = info["name"]
+
+    launchpad_id = "launchpads/"+info["launchpad"]
+    rocket_id = "rockets/"+info["rocket"]
+
+    rocket_info = requests.get(base+rocket_id).json()
+
+    launchpad_info = requests.get(base+launchpad_id).json()
+
+    rocket = rocket_info["name"]
+    launchpad = launchpad_info["name"]
+    pad_location = launchpad_info["locality"]
+
+    args = (name, date, rocket, launchpad, pad_location)
+    result = "{} ({}) {} - {} ({})".format(*args)
+
+    print(result)
